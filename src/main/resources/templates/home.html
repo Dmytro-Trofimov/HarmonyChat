@@ -53,23 +53,25 @@
       background-color: #444;
     }
     .chat-container {
-      width: 70%;
-      display: flex;
-      flex-direction: column;
-    }
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; 
+  }
     .header {
       background-color: #0088cc;
       color: white;
       padding: 15px;
       text-align: center;
     }
-    .messages {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      overflow-y: auto;
-      height: calc(100% - 100px);
-    }
+     .messages {
+    display: flex;
+    flex-direction: column;
+    justify-content: start; /* Змінюємо цю властивість */
+    overflow-y: auto;
+    height: calc(100% - 100px);
+    padding-right: 15px; /* Додаємо деяке відступ, щоб врахувати смугу прокрутки */
+  }
     .message {
       display: flex;
       align-items: center;
@@ -136,7 +138,7 @@
     </div>
     <div class="chat-container">
       <div class="header">Telegram Chat</div>
-      <div class="messages">
+      <div class="messages" id="messages">
         <div th:each="message : ${messages}">
           <div th:class="${message.author == contact.username} ? 'message' : 'message outgoing'">
             <!-- <img src="avatar1.png" alt="Avatar"> -->
@@ -189,9 +191,18 @@
       
       response.innerHTML = '<div class="message-content">' + message.text + '</div>';
       document.querySelector('.messages').appendChild(response);
+      scrollToBottom();
     }
 
-    window.onload = connect;
+    function scrollToBottom() {
+      var messages = document.getElementById('messages');
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    window.onload = function() {
+      connect();
+      scrollToBottom();
+    };
   </script>
 </body>
 </html>
