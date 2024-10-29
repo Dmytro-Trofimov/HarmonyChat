@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram Web Style</title>
+  <title>Harmony Chat</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -137,7 +137,7 @@
       </div>
     </div>
     <div class="chat-container">
-      <div class="header">Telegram Chat</div>
+      <div class="header">Your chat</div>
       <div class="messages" id="messages">
         <div th:each="message : ${messages}">
           <div th:class="${message.author == contact.username} ? 'message' : 'message outgoing'">
