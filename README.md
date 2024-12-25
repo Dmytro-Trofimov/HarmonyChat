@@ -40,3 +40,10 @@ A web chat application built with Java, utilizing Spring Boot, Spring Security, 
 
 Contributing
 Feel free to fork this repository and contribute by submitting a pull request.
+
+
+
+
+
+
+# FUTURE: solve the n+1 problem
