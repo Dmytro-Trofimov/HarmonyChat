@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.harmonyChat.HarmonyChat.model.Chat;
+import com.harmonyChat.HarmonyChat.model.User;
 import com.harmonyChat.HarmonyChat.repository.ChatRepository;
 
 import jakarta.transaction.Transactional;
@@ -22,8 +23,9 @@ public class ChatService {
 		return repo.findById(id).get();
 	}
 	@Transactional
-	public Chat findByFirstIdAndSecondId(int firstId, int secondId) {
-        return repo.findByFirstIdAndSecondId(firstId, secondId);
-    }
+	public Chat findByUsers(User firstUser, User secondUser) {
+	    return repo.findByFirstUserAndSecondUser(firstUser.getId(), secondUser.getId());
+	}
+
 
 }

@@ -9,7 +9,8 @@ import com.harmonyChat.HarmonyChat.model.Chat;
 
 @Repository
 public interface ChatRepository extends JpaRepository<Chat, Integer> {
-	@Query("SELECT c FROM Chat c WHERE c.first_id = :firstId AND c.second_id = :secondId")
-    Chat findByFirstIdAndSecondId(@Param("firstId") int firstId, @Param("secondId") int secondId);
+	@Query("SELECT c FROM Chat c WHERE c.firstUser.id = :firstId AND c.secondUser.id = :secondId")
+	Chat findByFirstUserAndSecondUser(@Param("firstId") int firstId, @Param("secondId") int secondId);
+
 
 }

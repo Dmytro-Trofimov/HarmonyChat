@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table
+@Table(name="harmonymessage")
 public class Message {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,7 +62,6 @@ public class Message {
 	}
 	public Message() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 }

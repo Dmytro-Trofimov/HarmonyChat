@@ -8,7 +8,6 @@ import java.util.List;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,144 +29,150 @@ import jakarta.transaction.Transactional;
 
 @Controller
 public class AuthController {
-    @Autowired
-    private UserService userService;
-    
-    
-    @Autowired
-    private ChatService chatService;
-    
-    @Autowired
-    private MessageService messageService;
+	@Autowired
+	private UserService userService;
 
-    @GetMapping("/register")
-    public String register() {
-        return "register";
-    }
+	@Autowired
+	private ChatService chatService;
 
-    @PostMapping("/register")
-    public String registerUser(@RequestParam String email, String username, String password) {
-        userService.registerUser(email, username, password);
-        return "redirect:/login";
-    }
+	@Autowired
+	private MessageService messageService;
 
-    @GetMapping("/login")
-    public String login() {
-        return "login";
-    }
+	@GetMapping("/register")
+	public String register() {
+		return "register";
+	}
 
-    @GetMapping("/home")
-    public String welcome(Model model, Principal principal) {
-        User user = userService.findByUserName(principal.getName());
-        Hibernate.initialize(user.getChats()); // Initialize the collection
-        List<String> contactNames = getContactNames(user);
-        
-        model.addAttribute("user", user);
-        model.addAttribute("contactNames", contactNames);
-        model.addAttribute("contact", new User());
-        return "home";
-    }
+	@PostMapping("/register")
+	public String registerUser(@RequestParam String email, String username, String password) {
+		userService.registerUser(email, username, password);
+		return "redirect:/login";
+	}
 
+	@GetMapping("/login")
+	public String login() {
+		return "login";
+	}
 
+	@GetMapping("/home")
+	public String home(Model model, Principal principal) {
+		User user = userService.findByUserName(principal.getName());
+		Hibernate.initialize(user.getAllChats()); // Initialize the collection
+		List<String> contactNames = getContactNames(user);
 
-    @GetMapping("/profil/{name}")
-    public String addContact(@PathVariable String name, Model model, Principal principal) {
-        // Fetch the current user
-        User currentUser = userService.findByUserName(principal.getName());
-        
-        // Fetch the user to be added as contact
-        User contactUser = userService.findByUserName(name);
-        if(contactUser==null) {
-        	model.addAttribute("contact", new User());
-            model.addAttribute("contactNames", new ArrayList<>());
-            model.addAttribute("messages", new ArrayList<>());
-            return "home";
-        }
-        // Check if the contact already exists
-        boolean contactExists = currentUser.getChats().stream()
-            .anyMatch(chat -> (chat.getFirst_id() == contactUser.getId() || chat.getSecond_id() == contactUser.getId()));
+		model.addAttribute("user", user);
+		model.addAttribute("contactNames", contactNames);
+		model.addAttribute("contact", new User());
+		return "home";
+	}
 
-        // If contact doesn't exist, create a new chat
-        if (!contactExists) {
-            Chat newChat = new Chat();
-            newChat.setFirst_id(currentUser.getId());
-            newChat.setSecond_id(contactUser.getId());
-            chatService.save(newChat); // Save the new chat
+	@GetMapping("/profil/{name}")
+	public String addContact(@PathVariable String name, Model model, Principal principal) {
+	    // Отримати поточного користувача
+	    User currentUser = userService.findByUserName(principal.getName());
 
-            currentUser.getChats().add(newChat); // Add new chat to user's chats
-            userService.save(currentUser); // Update the user
-            
-            contactUser.getChats().add(newChat);
-            userService.save(contactUser);
-        }
-        int chatId = getChatId(currentUser, contactUser);
-        List<Message> messages = messageService.findByChatId(chatId);
-        
-        List<String> contactNames = getContactNames(currentUser);
-        model.addAttribute("contact", contactUser);
-        model.addAttribute("contactNames", contactNames);
-        model.addAttribute("messages", messages);
-        return "home";
-    }
-    
-    @MessageMapping("/send")
-    @SendTo("/topic/messages")
-    @Transactional
-    public Message sendMessage(@RequestBody Message message, Principal principal) throws Exception {
-        // Fetch the current user
-        User currentUser = userService.findByUserName(principal.getName());
-        System.out.println("=====Current user: " + currentUser);
-        System.out.println(message);
-        
-        
-        String name =message.getChat_id()+"";
-        
-        User contactUser = userService.findByUserName(name);
-        System.out.println("Contact user: " + contactUser);
-        
-        message.setAuthor(HtmlUtils.htmlEscape(currentUser.getUsername()));
-        message.setText(HtmlUtils.htmlEscape(message.getText()));
-        message.setDate(new Date());
-        int chatId = getChatId(currentUser, contactUser);
-        
-        System.out.println("Chat ID: " + chatId);
-        
-        message.setChat_id(chatId);
-        
-        System.out.println("Saving message...");
-        messageService.save(message);
-        
-        return message;
-    }
+	    // Отримати користувача, якого хочемо додати до контактів
+	    User contactUser = userService.findByUserName(name);
+	    if (contactUser == null) {
+	        model.addAttribute("error", "User not found");
+	        return "error-page"; // Відобразити сторінку помилки
+	    }
+
+	    // Перевірка чи вже існує чат між користувачами
+	    boolean contactExists = currentUser.getInitiatedChats().stream()
+	        .anyMatch(chat -> chat.getSecondUser().getId() == contactUser.getId())
+	        || currentUser.getReceivedChats().stream()
+	        .anyMatch(chat -> chat.getFirstUser().getId() == contactUser.getId());
+
+	    Chat chat;
+	    if (!contactExists) {
+	        // Створення нового чату
+	        chat = new Chat();
+	        chat.setFirstUser(currentUser);
+	        chat.setSecondUser(contactUser);
+	        chatService.save(chat);
+	    } else {
+	        // Отримання вже існуючого чату
+	        chat = getExistingChat(currentUser, contactUser);
+	    }
+
+	    // Отримати повідомлення для чату
+	    List<Message> messages = messageService.findByChatId(chat.getId());
+
+	    // Отримати імена контактів для поточного користувача
+	    List<String> contactNames = getContactNames(currentUser);
+
+	    // Додати атрибути до моделі для відображення на сторінці
+	    model.addAttribute("contact", contactUser);
+	    model.addAttribute("contactNames", contactNames);
+	    model.addAttribute("messages", messages);
+	    model.addAttribute("user", currentUser);
+
+	    return "home";
+	}
 
 
+	@MessageMapping("/send")
+	@SendTo("/topic/messages")
+	@Transactional
+	public Message sendMessage(@RequestBody Message message, Principal principal) throws Exception {
+		System.out.println("Sending message: " + message);
+		User currentUser = userService.findByUserName(principal.getName());
 
-    
-    
-    public List<String> getContactNames(User user) {
-        List<String> contactNames = new ArrayList<>();
+		// Перевірка існування чату
+		Chat chat = chatService.findById(message.getChat_id());
+		if (chat == null) {
+			throw new Exception("Chat not found");
+		}
 
-        for (Chat chat : user.getChats()) {
-            if (chat.getFirst_id() == user.getId()) {
-                contactNames.add(userService.findById(chat.getSecond_id()).getUsername());
-            } else if (chat.getSecond_id() == user.getId()) {
-                contactNames.add(userService.findById(chat.getFirst_id()).getUsername());
-            }
-        }
+		// Встановлення даних повідомлення
+		message.setAuthor(HtmlUtils.htmlEscape(currentUser.getUsername()));
+		message.setText(HtmlUtils.htmlEscape(message.getText()));
+		message.setDate(new Date());
 
-        return contactNames;
-    }
-    public int getChatId(User currentUser, User contactUser) {
-        Chat thisChat = chatService.findByFirstIdAndSecondId(currentUser.getId(), contactUser.getId());
-        if(thisChat==null) {
-        	thisChat = chatService.findByFirstIdAndSecondId(contactUser.getId(), currentUser.getId());
-        	if(thisChat==null) {
-        		thisChat = new Chat();
-        	}
-        }
-        return thisChat.getId();
-    }
-    
+		messageService.save(message);
+
+		return message;
+	}
+
+	public List<String> getContactNames(User user) {
+		List<String> contactNames = new ArrayList<>();
+
+		for (Chat chat : user.getAllChats()) {
+			if (chat.getFirstUser().getId() == user.getId()) {
+				contactNames.add(userService.findById(chat.getSecondUser().getId()).getUsername());
+			} else if (chat.getSecondUser().getId() == user.getId()) {
+				contactNames.add(userService.findById(chat.getFirstUser().getId()).getUsername());
+			}
+		}
+
+		return contactNames;
+	}
+
+	public int getChatId(User currentUser, User contactUser) {
+	    Chat thisChat = chatService.findByUsers(currentUser, contactUser);
+	    if (thisChat == null) {
+	        thisChat = chatService.findByUsers(contactUser, currentUser);
+	        if (thisChat == null) {
+	            thisChat = new Chat();
+	        }
+	    }
+	    return thisChat.getId();
+	}
+
+	
+	
+	private Chat getExistingChat(User currentUser, User contactUser) {
+	    return currentUser.getInitiatedChats().stream()
+	        .filter(chat -> chat.getSecondUser().getId() == contactUser.getId())
+	        .findFirst()
+	        .orElse(
+	            currentUser.getReceivedChats().stream()
+	                .filter(chat -> chat.getFirstUser().getId() == contactUser.getId())
+	                .findFirst()
+	                .orElse(null)
+	        );
+	}
+
 
 }
-

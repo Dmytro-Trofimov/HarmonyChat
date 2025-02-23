@@ -147,9 +147,10 @@
         </div>
       </div>
       <div class="input-container">
-        <input type="hidden" id="chat_id" th:value="${contact.username}">
-        <input type="text" id="text" placeholder="Message">
-        <button onclick="sendMessage()">Send</button>
+		<input type="hidden" id="chat_id" th:value="${contact.id}">
+		<input type="hidden" id="current_user" th:value="${user.username}">
+		<input type="text" id="text" placeholder="Message">
+		<button onclick="sendMessage()">Send</button>
       </div>
     </div>
   </div>
@@ -160,39 +161,49 @@
       stompClient = Stomp.over(socket);
       stompClient.connect({}, function(frame) {
         console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/messages', function(message) {
-          showMessage(JSON.parse(message.body));
-        });
+		stompClient.subscribe('/topic/messages', function(message) {
+		  const receivedMessage = JSON.parse(message.body);
+		  const currentChatId = parseInt(document.getElementById('chat_id').value);
+		  if (receivedMessage.chat_id === currentChatId) {
+		    showMessage(receivedMessage);
+		  }
+		});
       });
     }
 
-    function sendMessage() {
-      var text = document.getElementById('text').value;
-      var chat_id = document.getElementById('chat_id').value;
-      var currentUser = document.getElementById('chat_id').value;
+	function sendMessage() {
+	  var text = document.getElementById('text').value;
+	  var chat_id = document.getElementById('chat_id').value;
+	  var author = document.getElementById('current_user').value;
 
-      stompClient.send("/app/send", {}, JSON.stringify({
-        'text': text,
-        'date': new Date(),
-        'chat_id': chat_id,
-        'author': currentUser
-      }));
-    }
+	  if (text.trim() === '') return;
 
-    function showMessage(message) {
-      var response = document.createElement('div');
-      var currentUser = document.getElementById('chat_id').value;
-      
-      if (message.author === currentUser) {
-        response.classList.add('message');
-      } else {
-        response.classList.add('message', 'outgoing');
-      }
-      
-      response.innerHTML = '<div class="message-content">' + message.text + '</div>';
-      document.querySelector('.messages').appendChild(response);
-      scrollToBottom();
-    }
+	  stompClient.send("/app/send", {}, JSON.stringify({
+	    'text': text,
+	    'date': new Date(),
+	    'chat_id': parseInt(chat_id),
+	    'author': author
+	  }));
+
+	  document.getElementById('text').value = '';
+	}
+
+	function showMessage(message) {
+	  var response = document.createElement('div');
+	  var currentUser = document.getElementById('current_user').value;
+
+	  if (message.author === currentUser) {
+	    response.classList.add('message', 'outgoing');
+	  } else {
+	    response.classList.add('message');
+	  }
+
+	  response.innerHTML = '<div class="message-content">' + message.text + '</div>';
+	  document.querySelector('.messages').appendChild(response);
+	  scrollToBottom();
+	}
+
+
 
     function scrollToBottom() {
       var messages = document.getElementById('messages');
