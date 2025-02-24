@@ -14,18 +14,15 @@ public class ChatService {
 
 	@Autowired
 	private ChatRepository repo;
-	@Transactional
+	
+	
 	public void save(Chat chat) {
 		repo.save(chat);
 	}
-	@Transactional
 	public Chat findById(int id) {
 		return repo.findById(id).get();
 	}
-	@Transactional
 	public Chat findByUsers(User firstUser, User secondUser) {
 	    return repo.findByFirstUserAndSecondUser(firstUser.getId(), secondUser.getId());
 	}
-
-
 }

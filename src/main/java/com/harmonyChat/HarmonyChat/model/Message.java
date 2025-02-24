@@ -2,66 +2,46 @@ package com.harmonyChat.HarmonyChat.model;
 
 import java.util.Date;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @Entity
 @Table(name="harmonymessage")
 public class Message {
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	private int chat_id;
-	private String author;
+
+	@ManyToOne
+	@JoinColumn(name = "chat_id", referencedColumnName = "id")
+	private Chat chat;
+
+	@ManyToOne
+	@JoinColumn(name = "author_id", referencedColumnName = "id")
+	private User author;
+
+	@Column(nullable = false)
 	private String text;
+
+	@Column(nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
-	public String getAuthor() {
-		return author;
-	}
-	public void setAuthor(String author) {
-		this.author = author;
-	}
-	public String getText() {
-		return text;
-	}
-	public void setText(String text) {
-		this.text = text;
-	}
-	public Date getDate() {
-		return date;
-	}
-	public void setDate(Date date) {
-		this.date = date;
-	}
-	public int getChat_id() {
-		return chat_id;
-	}
-	public void setChat_id(int chat_id) {
-		this.chat_id = chat_id;
-	}
-	@Override
-	public String toString() {
-		return "Message [id=" + id + ", author=" + author + ", text=" + text + ", date=" + date + ", chat_id=" + chat_id
-				+ "]";
-	}
-	public Message(String author, String text, Date date, int chat_id) {
-		super();
-		this.author = author;
-		this.text = text;
-		this.date = date;
-		this.chat_id = chat_id;
-	}
-	public Message() {
-		super();
-	}
 
 }

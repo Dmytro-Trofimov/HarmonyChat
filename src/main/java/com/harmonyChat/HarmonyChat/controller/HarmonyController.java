@@ -28,7 +28,7 @@ import com.harmonyChat.HarmonyChat.service.UserService;
 import jakarta.transaction.Transactional;
 
 @Controller
-public class AuthController {
+public class HarmonyController {
 	@Autowired
 	private UserService userService;
 
@@ -70,12 +70,15 @@ public class AuthController {
 	public String addContact(@PathVariable String name, Model model, Principal principal) {
 	    // Отримати поточного користувача
 	    User currentUser = userService.findByUserName(principal.getName());
+	    System.out.println("this " + currentUser.getUsername());
 
 	    // Отримати користувача, якого хочемо додати до контактів
 	    User contactUser = userService.findByUserName(name);
 	    if (contactUser == null) {
 	        model.addAttribute("error", "User not found");
 	        return "error-page"; // Відобразити сторінку помилки
+	        //TODO: .../|\
+	        //			|
 	    }
 
 	    // Перевірка чи вже існує чат між користувачами
@@ -126,7 +129,7 @@ public class AuthController {
 		}
 
 		// Встановлення даних повідомлення
-		message.setAuthor(HtmlUtils.htmlEscape(currentUser.getUsername()));
+		message.setAuthor(HtmlUtils.htmlEscape(currentUser.getName()));
 		message.setText(HtmlUtils.htmlEscape(message.getText()));
 		message.setDate(new Date());
 

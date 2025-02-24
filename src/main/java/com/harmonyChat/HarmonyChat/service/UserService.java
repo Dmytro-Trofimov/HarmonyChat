@@ -11,14 +11,13 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
-
-	private final UserRepository userRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
+	
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-	public UserService(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
 	@Transactional
 	public void registerUser(String email, String username, String password) {
 		User user = new User();

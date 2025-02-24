@@ -11,6 +11,4 @@ import com.harmonyChat.HarmonyChat.model.Message;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Integer> {
-	@Query("SELECT m FROM Message m WHERE m.chat_id = :chat_id")
-    List<Message> findByChatId(@Param("chat_id") int chat_id);
 }
