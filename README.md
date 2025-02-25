@@ -47,3 +47,5 @@ Feel free to fork this repository and contribute by submitting a pull request.
 
 
 # FUTURE: solve the n+1 problem
+update db structure maybe change to mongo or cassandra
+update logic
