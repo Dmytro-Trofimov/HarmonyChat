@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class UserService {
+	@Autowired
+	private PasswordEncoder bCryptPasswordEncoder;
 	
 	@Autowired
 	private UserRepository userRepository;
@@ -21,7 +23,7 @@ public class UserService {
 	@Transactional
 	public void registerUser(String email, String username, String password) {
 		User user = new User();
-		user.setUsername(username);
+		user.setName(username);
 		user.setPassword(passwordEncoder.encode(password));
 		user.setRole("USER");
 		user.setEmail(email);
@@ -32,12 +34,20 @@ public class UserService {
 		return userRepository.findById(id).get();
 	}
 	@Transactional
-	public User findByUserName(String name) {
-		return userRepository.findByUsername(name).get();
+	public User findByName(String name) {
+		return userRepository.findByName(name).get();
 	}
 	@Transactional
 	public User save(User user) {
 		return userRepository.save(user);
+	}
+	public User authenticate(String username, String password) {
+		User user = userRepository.findByName(username).get();
+		boolean correctData = bCryptPasswordEncoder.encode(user.getPassword()) == password;
+		if(correctData) {
+			return user;
+		}
+		return null;
 	}
 
 }

@@ -30,17 +30,9 @@ public class Chat {
 
 	@ManyToMany
 	@JoinTable(
-	    name = "chat_participants",
+	    name = "participants",
 	    joinColumns = @JoinColumn(name = "chat_id"),
 	    inverseJoinColumns = @JoinColumn(name = "user_id")
 	)
 	private List<User> participants = new ArrayList<>();
-
-	@ManyToOne
-	@JoinColumn(name = "firstUser", referencedColumnName = "id")
-	private User firstUser;
-	@ManyToOne
-	@JoinColumn(name = "secondUser", referencedColumnName = "id")
-	private User secondUser;
-
 }

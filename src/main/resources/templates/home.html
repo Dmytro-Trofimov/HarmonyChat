@@ -172,21 +172,19 @@
     }
 
 	function sendMessage() {
-	  var text = document.getElementById('text').value;
-	  var chat_id = document.getElementById('chat_id').value;
-	  var author = document.getElementById('current_user').value;
+	    var text = document.getElementById('text').value;
+	    var chat_id = document.getElementById('chat_id').value;
 
-	  if (text.trim() === '') return;
+	    if (text.trim() === '') return;
 
-	  stompClient.send("/app/send", {}, JSON.stringify({
-	    'text': text,
-	    'date': new Date(),
-	    'chat_id': parseInt(chat_id),
-	    'author': author
-	  }));
+	    stompClient.send("/app/send", {}, JSON.stringify({
+	        'text': text,
+	        'chat_id': parseInt(chat_id)
+	    }));
 
-	  document.getElementById('text').value = '';
+	    document.getElementById('text').value = '';
 	}
+
 
 	function showMessage(message) {
 	  var response = document.createElement('div');
