@@ -11,4 +11,6 @@ import com.harmonyChat.HarmonyChat.model.Message;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Integer> {
+
+	List<Message> findByChatId(int chat_id);
 }

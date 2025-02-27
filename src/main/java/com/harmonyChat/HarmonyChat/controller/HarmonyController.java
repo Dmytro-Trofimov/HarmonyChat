@@ -55,15 +55,15 @@ public class HarmonyController {
 		return "login";
 	}
 
-	@PostMapping("/login")
-	public String loginUser(@RequestParam String username, @RequestParam String password, Model model) {
-	    User user = userService.authenticate(username, password);
-	    if (user == null) {
-	        model.addAttribute("error", "Invalid username or password");
-	        return "login";
-	    }
-	    return "redirect:/home";
-	}
+//	@PostMapping("/login")
+//	public String loginUser(@RequestParam String username, @RequestParam String password, Model model) {
+//	    User user = userService.authenticate(username, password);
+//	    if (user == null) {
+//	        model.addAttribute("error", "Invalid username or password");
+//	        return "login";
+//	    }
+//	    return "redirect:/home";
+//	}
 
 
 	@GetMapping("/home")
@@ -71,7 +71,7 @@ public class HarmonyController {
 		System.out.println("start home");
 		User user = userService.findByName(principal.getName());
 		Hibernate.initialize(user.getChats()); // Initialize the collection
-		List<String> contactNames = getContactNames(user);
+		List<String> contactNames = userService.getContactNames(user);
 
 		model.addAttribute("user", user);
 		model.addAttribute("contactNames", contactNames);
@@ -91,7 +91,7 @@ public class HarmonyController {
 			model.addAttribute("error", "User not found");
 			return "error-page"; // Відобразити сторінку помилки
 			// TODO: .../|\
-			// |
+			// 			 |
 		}
 
 		// Перевірка чи вже існує чат між користувачами
@@ -148,16 +148,6 @@ public class HarmonyController {
 		return message;
 	}
 
-	public List<String> getContactNames(User user) {
-		List<String> contactNames = new ArrayList<>();
-		List<Chat> chats= user.getChats();
-		for (Chat chat : chats) {
-			contactNames = chats.stream().map(n -> n.getParticipants().getFirst().getName()).toList();
-			contactNames.stream().filter(n -> );
-		}
-
-		return contactNames;
-	}
 
 	public int getChatId(User currentUser, User contactUser) {
 		Chat thisChat = chatService.findByUsers(currentUser, contactUser);

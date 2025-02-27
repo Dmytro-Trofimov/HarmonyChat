@@ -25,7 +25,7 @@ public class MessageService {
         return repo.findById(id).get();
     }
     @Transactional
-    public List<Message> findByChatId(int chat_id) {
-        return repo.findByChatId(chat_id);
+    public List<Message> findByChatId(int chatId) {
+        return repo.findByChatId(chatId);
     }
 }

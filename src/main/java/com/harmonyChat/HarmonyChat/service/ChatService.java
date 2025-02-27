@@ -1,5 +1,7 @@
 package com.harmonyChat.HarmonyChat.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,6 @@ public class ChatService {
 		return repo.findById(id).get();
 	}
 	public Chat findByUsers(User firstUser, User secondUser) {
-	    return repo.findByFirstUserAndSecondUser(firstUser.getId(), secondUser.getId());
+	    return repo.findByParticipants(List.of(firstUser, secondUser));
 	}
 }
