@@ -68,7 +68,6 @@ public class HarmonyController {
 
 	@GetMapping("/home")
 	public String home(Model model, Principal principal) {
-		System.out.println("start home");
 		User user = userService.findByName(principal.getName());
 		Hibernate.initialize(user.getChats()); // Initialize the collection
 		List<String> contactNames = userService.getContactNames(user);
@@ -83,11 +82,11 @@ public class HarmonyController {
 	public String addContact(@PathVariable String name, Model model, Principal principal) {
 		// Отримати поточного користувача
 		User currentUser = userService.findByName(principal.getName());
-		System.out.println("this " + currentUser.getName());
 
 		// Отримати користувача, якого хочемо додати до контактів
 		User contactUser = userService.findByName(name);
 		if (contactUser == null) {
+			System.out.println("user not found return error page");
 			model.addAttribute("error", "User not found");
 			return "error-page"; // Відобразити сторінку помилки
 			// TODO: .../|\
@@ -106,14 +105,15 @@ public class HarmonyController {
 			chatService.save(chat);
 		} else {
 			// Отримання вже існуючого чату
-			chat = getExistingChat(currentUser, contactUser);
+			chat = chatService.findByUsers(List.of(contactUser, currentUser));
+			System.out.println("find by userList");
 		}
 
 		// Отримати повідомлення для чату
 		List<Message> messages = messageService.findByChatId(chat.getId());
 
 		// Отримати імена контактів для поточного користувача
-		List<String> contactNames = getContactNames(currentUser);
+		List<String> contactNames = userService.getContactNames(currentUser);
 
 		// Додати атрибути до моделі для відображення на сторінці
 		model.addAttribute("contact", contactUser);
@@ -130,11 +130,16 @@ public class HarmonyController {
 	public Message sendMessage(@Payload MessageDTO messageDTO, Principal principal) throws Exception {
 		System.out.println("Receiving message: " + messageDTO);
 
+		System.out.println(principal.getName());
 		User currentUser = userService.findByName(principal.getName());
-
+		System.out.println(currentUser);
+		if(true) {
+			return null;
+		}
+		
 		Chat chat = chatService.findById(messageDTO.getChat_id());
 		if (chat == null) {
-			throw new Exception("Chat not found");
+			System.out.println("chat not found");
 		}
 
 		Message message = new Message();
@@ -150,9 +155,9 @@ public class HarmonyController {
 
 
 	public int getChatId(User currentUser, User contactUser) {
-		Chat thisChat = chatService.findByUsers(currentUser, contactUser);
+		Chat thisChat = chatService.findByUsers(List.of(currentUser, contactUser));
 		if (thisChat == null) {
-			thisChat = chatService.findByUsers(contactUser, currentUser);
+			thisChat = chatService.findByUsers(List.of(contactUser, currentUser));
 			if (thisChat == null) {
 				thisChat = new Chat();
 			}
