@@ -147,7 +147,7 @@
         </div>
       </div>
       <div class="input-container">
-		<input type="hidden" id="chat_id" th:value="${contact.id}">
+		<input type="hidden" id="chatId" th:value="${chatId}">
 		<input type="hidden" id="current_user" th:value="${user.name}">
 		<input type="text" id="text" placeholder="Message">
 		<button onclick="sendMessage()">Send</button>
@@ -161,29 +161,34 @@
       stompClient = Stomp.over(socket);
       stompClient.connect({}, function(frame) {
         console.log('Connected: ' + frame);
-		stompClient.subscribe('/topic/messages', function(message) {
-		  const receivedMessage = JSON.parse(message.body);
-		  const currentChatId = parseInt(document.getElementById('chat_id').value);
-		  if (receivedMessage.chat_id === currentChatId) {
-		    showMessage(receivedMessage);
-		  }
+		stompClient.subscribe('/user/queue/messages', function(message) {
+		    const receivedMessage = JSON.parse(message.body);
+		    const currentChatId = parseInt(document.getElementById('chatId').value);
+		    if (receivedMessage.chatId === currentChatId) {
+		        showMessage(receivedMessage);
+		    }
 		});
       });
     }
 
 	function sendMessage() {
 	    var text = document.getElementById('text').value;
-	    var chat_id = document.getElementById('chat_id').value;
+	    var chatId = document.getElementById('chatId').value;
 
 	    if (text.trim() === '') return;
 
-	    stompClient.send("/app/send", {}, JSON.stringify({
+	    var message = JSON.stringify({
 	        'text': text,
-	        'chat_id': parseInt(chat_id)
-	    }));
+	        'chatId': parseInt(chatId)
+	    });
+
+	    console.log("Sending message:", message);
+
+	    stompClient.send("/app/send", {}, message);
 
 	    document.getElementById('text').value = '';
 	}
+
 
 
 	function showMessage(message) {

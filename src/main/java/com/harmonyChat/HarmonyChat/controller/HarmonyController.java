@@ -1,7 +1,8 @@
 package com.harmonyChat.HarmonyChat.controller;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -9,14 +10,13 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.util.HtmlUtils;
 
 import com.harmonyChat.HarmonyChat.DTO.MessageDTO;
 import com.harmonyChat.HarmonyChat.model.Chat;
@@ -120,33 +120,38 @@ public class HarmonyController {
 		model.addAttribute("contactNames", contactNames);
 		model.addAttribute("messages", messages);
 		model.addAttribute("user", currentUser);
+		model.addAttribute("chatId", chat.getId());
 
 		return "home";
 	}
 
 	@MessageMapping("/send")
-	@SendTo("/topic/messages")
+	@SendToUser("/queue/messages")
 	@Transactional
-	public Message sendMessage(@Payload MessageDTO messageDTO, Principal principal) throws Exception {
+	public Message sendMessage(@Payload MessageDTO messageDTO, Principal principal) {
 		System.out.println("Receiving message: " + messageDTO);
 
-		System.out.println(principal.getName());
+		//System.out.println(principal.getName());
 		User currentUser = userService.findByName(principal.getName());
-		System.out.println(currentUser);
-		if(true) {
-			return null;
-		}
-		
-		Chat chat = chatService.findById(messageDTO.getChat_id());
-		if (chat == null) {
-			System.out.println("chat not found");
+		if (currentUser == null) {
+		    throw new IllegalArgumentException("User not found: " + principal.getName());
 		}
 
+		System.out.println(currentUser);
+		
+		Chat chat = chatService.findById(messageDTO.getChatId());
+		if (chat == null) {
+		    System.out.println("chat not found");
+		    throw new IllegalArgumentException("Chat not found: " + messageDTO.getChatId());
+		}
+
+		
 		Message message = new Message();
 		message.setAuthor(currentUser);
 		message.setChat(chat);
-		message.setText(HtmlUtils.htmlEscape(messageDTO.getText()));
+		message.setText(URLDecoder.decode(messageDTO.getText(), StandardCharsets.UTF_8));
 		message.setDate(new Date());
+		System.out.println("Saving message: " + message);
 
 		messageService.save(message);
 
