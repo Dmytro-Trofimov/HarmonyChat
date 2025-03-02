@@ -19,14 +19,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.harmonyChat.HarmonyChat.DTO.MessageDTO;
+import com.harmonyChat.HarmonyChat.DTO.MessageResponseDTO;
 import com.harmonyChat.HarmonyChat.model.Chat;
 import com.harmonyChat.HarmonyChat.model.Message;
 import com.harmonyChat.HarmonyChat.model.User;
 import com.harmonyChat.HarmonyChat.service.ChatService;
 import com.harmonyChat.HarmonyChat.service.MessageService;
 import com.harmonyChat.HarmonyChat.service.UserService;
-
-import jakarta.transaction.Transactional;
 
 @Controller
 public class HarmonyController {
@@ -127,36 +126,30 @@ public class HarmonyController {
 
 	@MessageMapping("/send")
 	@SendToUser("/queue/messages")
-	@Transactional
-	public Message sendMessage(@Payload MessageDTO messageDTO, Principal principal) {
-		System.out.println("Receiving message: " + messageDTO);
+	public MessageResponseDTO sendMessage(@Payload MessageDTO messageDTO, Principal principal) {
+		System.out.println(messageDTO);
+	    User currentUser = userService.findByName(principal.getName());
+	    if (currentUser == null) {
+	        throw new IllegalArgumentException("User not found: " + principal.getName());
+	    }
 
-		//System.out.println(principal.getName());
-		User currentUser = userService.findByName(principal.getName());
-		if (currentUser == null) {
-		    throw new IllegalArgumentException("User not found: " + principal.getName());
-		}
+	    Chat chat = chatService.findById(messageDTO.getChatId());
+	    if (chat == null) {
+	        throw new IllegalArgumentException("Chat not found: " + messageDTO.getChatId());
+	    }
 
-		System.out.println(currentUser);
-		
-		Chat chat = chatService.findById(messageDTO.getChatId());
-		if (chat == null) {
-		    System.out.println("chat not found");
-		    throw new IllegalArgumentException("Chat not found: " + messageDTO.getChatId());
-		}
+	    Message message = new Message();
+	    message.setAuthor(currentUser);
+	    message.setChat(chat);
+	    message.setText(URLDecoder.decode(messageDTO.getText(), StandardCharsets.UTF_8));
+	    message.setDate(new Date());
 
-		
-		Message message = new Message();
-		message.setAuthor(currentUser);
-		message.setChat(chat);
-		message.setText(URLDecoder.decode(messageDTO.getText(), StandardCharsets.UTF_8));
-		message.setDate(new Date());
-		System.out.println("Saving message: " + message);
+	    messageService.save(message);
 
-		messageService.save(message);
-
-		return message;
+	    return new MessageResponseDTO(message.getId(), message.getText(), currentUser.getName(), chat.getId());
 	}
+
+
 
 
 	public int getChatId(User currentUser, User contactUser) {

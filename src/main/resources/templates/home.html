@@ -171,23 +171,22 @@
       });
     }
 
-	function sendMessage() {
-	    var text = document.getElementById('text').value;
-	    var chatId = document.getElementById('chatId').value;
+	function showMessage(message) {
+	    var response = document.createElement('div');
+	    var currentUserId = parseInt(document.getElementById('current_user').value);
 
-	    if (text.trim() === '') return;
+	    if (message.authorId === currentUserId) {
+	        response.classList.add('message', 'outgoing');
+	    } else {
+	        response.classList.add('message');
+	    }
 
-	    var message = JSON.stringify({
-	        'text': text,
-	        'chatId': parseInt(chatId)
-	    });
-
-	    console.log("Sending message:", message);
-
-	    stompClient.send("/app/send", {}, message);
-
-	    document.getElementById('text').value = '';
+	    response.innerHTML = '<div class="message-content">' + message.text + '</div>';
+	    document.querySelector('.messages').appendChild(response);
+	    scrollToBottom();
 	}
+
+
 
 
 

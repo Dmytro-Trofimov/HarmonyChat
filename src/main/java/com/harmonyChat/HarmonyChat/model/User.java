@@ -29,6 +29,8 @@ public class User {
     private String email;
     private String password;
     private String role;
+
     @ManyToMany(mappedBy = "participants")
+    @ToString.Exclude  // Запобігаємо рекурсії
     private List<Chat> chats = new ArrayList<>();
 }

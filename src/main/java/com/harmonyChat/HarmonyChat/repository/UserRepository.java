@@ -9,6 +9,5 @@ import com.harmonyChat.HarmonyChat.model.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
-	//@EntityGraph(attributePaths = {"initiatedChats", "receivedChats"})
 	Optional<User> findByName(String name);
 }

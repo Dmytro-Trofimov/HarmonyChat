@@ -2,13 +2,13 @@ package com.harmonyChat.HarmonyChat.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class MessageDTO {
+public class MessageResponseDTO {
+    private int id;
     private String text;
+    private String authorName;
     private int chatId;
-    private int authorId;
 }
+

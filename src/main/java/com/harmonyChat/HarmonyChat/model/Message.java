@@ -31,10 +31,12 @@ public class Message {
 
 	@ManyToOne
 	@JoinColumn(name = "chat_id", referencedColumnName = "id")
+    @ToString.Exclude  // Запобігаємо рекурсії
 	private Chat chat;
 
 	@ManyToOne
 	@JoinColumn(name = "author_id", referencedColumnName = "id")
+    @ToString.Exclude  // Запобігаємо рекурсії
 	private User author;
 
 	@Column(nullable = false)
@@ -43,5 +45,5 @@ public class Message {
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
-
 }
+

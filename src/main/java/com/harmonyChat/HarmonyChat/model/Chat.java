@@ -3,6 +3,8 @@ package com.harmonyChat.HarmonyChat.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -37,6 +39,8 @@ public class Chat {
 	    joinColumns = @JoinColumn(name = "chat_id"),
 	    inverseJoinColumns = @JoinColumn(name = "user_id")
 	)
+    @ToString.Exclude
+    @JsonIgnore
 	private List<User> participants = new ArrayList<>();
 	
 	
