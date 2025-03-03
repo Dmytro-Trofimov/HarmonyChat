@@ -7,10 +7,11 @@ import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,16 +28,15 @@ import com.harmonyChat.HarmonyChat.service.ChatService;
 import com.harmonyChat.HarmonyChat.service.MessageService;
 import com.harmonyChat.HarmonyChat.service.UserService;
 
+import lombok.RequiredArgsConstructor;
+
 @Controller
+@RequiredArgsConstructor
 public class HarmonyController {
-	@Autowired
-	private UserService userService;
-
-	@Autowired
-	private ChatService chatService;
-
-	@Autowired
-	private MessageService messageService;
+	private final UserService userService;
+	private final ChatService chatService;
+	private final MessageService messageService;
+	private final PasswordEncoder passwordEncoder;
 
 	@GetMapping("/register")
 	public String register() {
@@ -45,7 +45,7 @@ public class HarmonyController {
 
 	@PostMapping("/register")
 	public String registerUser(@RequestParam String email, String username, String password) {
-		userService.registerUser(email, username, password);
+		userService.registerUser(email, username, passwordEncoder.encode(password));
 		return "redirect:/login";
 	}
 
@@ -77,6 +77,7 @@ public class HarmonyController {
 		return "home";
 	}
 
+	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/profil/{name}")
 	public String addContact(@PathVariable String name, Model model, Principal principal) {
 		// Отримати поточного користувача
@@ -162,20 +163,4 @@ public class HarmonyController {
 		}
 		return thisChat.getId();
 	}
-
-//	private Chat getExistingChat(User currentUser, User contactUser) {
-//		return currentUser.getInitiatedChats().stream()
-//				.filter(chat -> chat.getSecondUser().getId() == contactUser.getId())
-//				.findFirst()
-//				.orElse(
-//						currentUser.getReceivedChats().stream()
-//
-//								.filter(chat -> chat.getFirstUser().getId() == contactUser.getId())
-//
-//								.findFirst()
-//
-//								.orElse(null)
-//				);
-//	}	
-
 }
