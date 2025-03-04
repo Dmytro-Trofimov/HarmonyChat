@@ -9,7 +9,7 @@ import java.util.List;
 import org.hibernate.Hibernate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.annotation.SendToUser;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -126,9 +126,9 @@ public class HarmonyController {
 	}
 
 	@MessageMapping("/send")
-	@SendToUser("/queue/messages")
+	@SendTo("/topic/messages") // Надсилає всім підписникам
 	public MessageResponseDTO sendMessage(@Payload MessageDTO messageDTO, Principal principal) {
-		System.out.println(messageDTO);
+	    System.out.println(messageDTO);
 	    User currentUser = userService.findByName(principal.getName());
 	    if (currentUser == null) {
 	        throw new IllegalArgumentException("User not found: " + principal.getName());
@@ -147,8 +147,9 @@ public class HarmonyController {
 
 	    messageService.save(message);
 
-	    return new MessageResponseDTO(message.getId(), message.getText(), currentUser.getName(), chat.getId());
+	    return new MessageResponseDTO(message.getId(), message.getText(), currentUser.getId(), chat.getId());
 	}
+
 
 
 

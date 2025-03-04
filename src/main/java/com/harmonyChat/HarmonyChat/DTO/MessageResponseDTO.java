@@ -8,7 +8,7 @@ import lombok.Data;
 public class MessageResponseDTO {
     private int id;
     private String text;
-    private String authorName;
+    private int authorId;
     private int chatId;
 }
 

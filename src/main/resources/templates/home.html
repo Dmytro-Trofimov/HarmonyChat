@@ -156,20 +156,22 @@
   </div>
   <script>
     var stompClient = null;
-    function connect() {
-      var socket = new SockJS('/ws');
-      stompClient = Stomp.over(socket);
-      stompClient.connect({}, function(frame) {
-        console.log('Connected: ' + frame);
-		stompClient.subscribe('/user/queue/messages', function(message) {
-		    const receivedMessage = JSON.parse(message.body);
-		    const currentChatId = parseInt(document.getElementById('chatId').value);
-		    if (receivedMessage.chatId === currentChatId) {
-		        showMessage(receivedMessage);
-		    }
-		});
-      });
-    }
+	function connect() {
+	    var socket = new SockJS('/ws');
+	    stompClient = Stomp.over(socket);
+	    stompClient.connect({}, function(frame) {
+	        console.log('Connected: ' + frame);
+	        
+	        stompClient.subscribe('/topic/messages', function(message) {
+	            const receivedMessage = JSON.parse(message.body);
+	            const currentChatId = parseInt(document.getElementById('chatId').value);
+	            
+	            if (receivedMessage.chatId === currentChatId) {
+	                showMessage(receivedMessage);
+	            }
+	        });
+	    });
+	}
 
 	function showMessage(message) {
 	    var response = document.createElement('div');
@@ -194,14 +196,14 @@
 	function sendMessage() {
 	    var text = document.getElementById('text').value;
 	    var chatId = document.getElementById('chatId').value;
-	    var authorId = document.getElementById('current_user').value; // Виправлення тут
+	    var authorId = document.getElementById('current_user').value;
 
 	    if (text.trim() === '') return;
 
 	    var message = JSON.stringify({
 	        'text': text,
 	        'chatId': parseInt(chatId),
-	        'authorId': parseInt(authorId) // Виправлено
+	        'authorId': parseInt(authorId)
 	    });
 
 	    console.log("Sending message:", message);
