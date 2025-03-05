@@ -140,7 +140,7 @@
       <div class="header">Your chat</div>
       <div class="messages" id="messages">
         <div th:each="message : ${messages}">
-          <div th:class="${message.author == contact.name} ? 'message' : 'message outgoing'">
+          <div th:class="${message.author.id == user.id} ? 'message' : 'message outgoing'">
             <!-- <img src="avatar1.png" alt="Avatar"> -->
             <div class="message-content" th:text="${message.text}"></div>
           </div>
@@ -155,74 +155,77 @@
     </div>
   </div>
   <script>
-    var stompClient = null;
-	function connect() {
-	    var socket = new SockJS('/ws');
-	    stompClient = Stomp.over(socket);
-	    stompClient.connect({}, function(frame) {
-	        console.log('Connected: ' + frame);
-	        
-	        stompClient.subscribe('/topic/messages', function(message) {
-	            const receivedMessage = JSON.parse(message.body);
-	            const currentChatId = parseInt(document.getElementById('chatId').value);
-	            
-	            if (receivedMessage.chatId === currentChatId) {
-	                showMessage(receivedMessage);
-	            }
-	        });
-	    });
-	}
+      var stompClient = null;
 
-	function showMessage(message) {
-	    var response = document.createElement('div');
-	    var currentUserId = parseInt(document.getElementById('current_user').value);
+      function connect() {
+          var socket = new SockJS('/ws');
+          stompClient = Stomp.over(socket);
+          stompClient.connect({}, function(frame) {
+              console.log('Connected: ' + frame);
+              
+              stompClient.subscribe('/topic/messages', function(message) {
+                  const receivedMessage = JSON.parse(message.body);
+                  const currentChatId = parseInt(document.getElementById('chatId').value);
+                  
+                  if (receivedMessage.chatId === currentChatId) {
+                      showMessage(receivedMessage);
+                  }
+              });
+          });
+      }
 
-	    if (message.authorId === currentUserId) {
-	        response.classList.add('message', 'outgoing');
-	    } else {
-	        response.classList.add('message');
-	    }
+      function showMessage(message) {
+          var response = document.createElement('div');
+          var currentUserId = parseInt(document.getElementById('current_user').value, 10);
 
-	    response.innerHTML = '<div class="message-content">' + message.text + '</div>';
-	    document.querySelector('.messages').appendChild(response);
-	    scrollToBottom();
-	}
+          response.classList.add('message');
+          if (message.authorId === currentUserId) {
+              response.classList.add('outgoing');
+          }
 
+          response.innerHTML = `<div class="message-content">${message.text}</div>`;
+          document.querySelector('.messages').appendChild(response);
+          scrollToBottom();
+      }
 
+      function sendMessage() {
+          var textInput = document.getElementById('text');
+          var text = textInput.value;
+          var chatId = document.getElementById('chatId').value;
+          var authorId = document.getElementById('current_user').value;
 
+          if (text.trim() === '') return;
 
+          var message = JSON.stringify({
+              'text': text,
+              'chatId': parseInt(chatId),
+              'authorId': parseInt(authorId)
+          });
 
+          console.log("Sending message:", message);
+          stompClient.send("/app/send", {}, message);
+          textInput.value = '';
+      }
 
-	function sendMessage() {
-	    var text = document.getElementById('text').value;
-	    var chatId = document.getElementById('chatId').value;
-	    var authorId = document.getElementById('current_user').value;
+      function scrollToBottom() {
+          var messages = document.getElementById('messages');
+          messages.scrollTop = messages.scrollHeight;
+      }
 
-	    if (text.trim() === '') return;
+      // Додаємо обробник події для клавіші Enter
+      document.addEventListener("DOMContentLoaded", function() {
+          connect();
+          scrollToBottom();
 
-	    var message = JSON.stringify({
-	        'text': text,
-	        'chatId': parseInt(chatId),
-	        'authorId': parseInt(authorId)
-	    });
-
-	    console.log("Sending message:", message);
-	    stompClient.send("/app/send", {}, message);
-	    document.getElementById('text').value = '';
-	}
-
-
-
-
-    function scrollToBottom() {
-      var messages = document.getElementById('messages');
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    window.onload = function() {
-      connect();
-      scrollToBottom();
-    };
+          var textInput = document.getElementById("text");
+          textInput.addEventListener("keydown", function(event) {
+              if (event.key === "Enter") {
+                  event.preventDefault(); // Запобігає стандартній дії (наприклад, перехід на новий рядок)
+                  sendMessage();
+              }
+          });
+      });
   </script>
+
 </body>
 </html>

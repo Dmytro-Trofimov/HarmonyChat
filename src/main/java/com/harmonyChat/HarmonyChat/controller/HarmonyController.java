@@ -126,9 +126,10 @@ public class HarmonyController {
 	}
 
 	@MessageMapping("/send")
-	@SendTo("/topic/messages") // Надсилає всім підписникам
+	@SendTo("/topic/messages")
 	public MessageResponseDTO sendMessage(@Payload MessageDTO messageDTO, Principal principal) {
-	    System.out.println(messageDTO);
+	    System.out.println("Received message: " + messageDTO);
+	    
 	    User currentUser = userService.findByName(principal.getName());
 	    if (currentUser == null) {
 	        throw new IllegalArgumentException("User not found: " + principal.getName());
@@ -147,8 +148,14 @@ public class HarmonyController {
 
 	    messageService.save(message);
 
-	    return new MessageResponseDTO(message.getId(), message.getText(), currentUser.getId(), chat.getId());
+	    return new MessageResponseDTO(
+	        message.getId(), 
+	        message.getText(), 
+	        currentUser.getId(), // Виправлено на ID автора
+	        chat.getId()
+	    );
 	}
+
 
 
 
