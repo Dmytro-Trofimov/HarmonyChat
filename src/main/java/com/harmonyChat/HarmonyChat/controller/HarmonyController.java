@@ -24,6 +24,7 @@ import com.harmonyChat.HarmonyChat.DTO.MessageResponseDTO;
 import com.harmonyChat.HarmonyChat.model.Chat;
 import com.harmonyChat.HarmonyChat.model.Message;
 import com.harmonyChat.HarmonyChat.model.User;
+import com.harmonyChat.HarmonyChat.repository.ChatRepository;
 import com.harmonyChat.HarmonyChat.service.ChatService;
 import com.harmonyChat.HarmonyChat.service.MessageService;
 import com.harmonyChat.HarmonyChat.service.UserService;
@@ -37,6 +38,7 @@ public class HarmonyController {
 	private final ChatService chatService;
 	private final MessageService messageService;
 	private final PasswordEncoder passwordEncoder;
+	private final ChatRepository chatRepository;
 
 	@GetMapping("/register")
 	public String register() {
@@ -68,7 +70,7 @@ public class HarmonyController {
 	@GetMapping("/home")
 	public String home(Model model, Principal principal) {
 		User user = userService.findByName(principal.getName());
-		Hibernate.initialize(user.getChats()); // Initialize the collection
+		//Hibernate.initialize(user.getChats()); // Initialize the collection
 		List<String> contactNames = userService.getContactNames(user);
 
 		model.addAttribute("user", user);
@@ -81,9 +83,11 @@ public class HarmonyController {
 	@GetMapping("/profil/{name}")
 	public String addContact(@PathVariable String name, Model model, Principal principal) {
 		// Отримати поточного користувача
+		System.out.println("shas najdem user");
 		User currentUser = userService.findByName(principal.getName());
 
 		// Отримати користувача, якого хочемо додати до контактів
+		System.out.println("shas najdem contact");
 		User contactUser = userService.findByName(name);
 		if (contactUser == null) {
 			System.out.println("user not found return error page");
@@ -94,9 +98,11 @@ public class HarmonyController {
 		}
 
 		// Перевірка чи вже існує чат між користувачами
-		boolean contactExists = currentUser.getChats().stream()
-				.anyMatch(chat -> chat.getParticipants().contains(contactUser));
-
+		System.out.println("shas duvlus chi je contact");
+		boolean contactExists = chatRepository.existsChatBetweenUsers(currentUser.getId(), contactUser.getId());/*currentUser.getChats().stream()
+				.anyMatch(chat -> chat.getParticipants().contains(contactUser));*/
+		System.out.println("choho tut bulo dva");
+		
 		Chat chat;
 		if (!contactExists) {
 			// Створення нового чату
@@ -105,13 +111,14 @@ public class HarmonyController {
 			chatService.save(chat);
 		} else {
 			// Отримання вже існуючого чату
-			chat = chatService.findByUsers(List.of(contactUser, currentUser));
 			System.out.println("find by userList");
+			chat = chatService.findByUsers(List.of(contactUser, currentUser));
 		}
-
+		System.out.println("Отримати повідомлення для чату");
 		// Отримати повідомлення для чату
 		List<Message> messages = messageService.findByChatId(chat.getId());
 
+		System.out.println(" Отримати імена контактів для поточного користувача");
 		// Отримати імена контактів для поточного користувача
 		List<String> contactNames = userService.getContactNames(currentUser);
 

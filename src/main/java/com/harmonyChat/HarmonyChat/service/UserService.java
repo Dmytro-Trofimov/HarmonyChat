@@ -53,9 +53,10 @@ public class UserService {
 	}
 	
 	public List<String> getContactNames(User user) {
-	    return user.getChats().stream()
+	    return userRepository.findContactNamesByUserId(user.getId());
+	    		/*user.getChats().stream()
 	            .map(chat -> chat.getChatNameForUser(user))
-	            .toList();
+	            .toList();*/
 	}
 
 }
