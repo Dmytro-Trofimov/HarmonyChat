@@ -1,4 +1,4 @@
-package com.harmonyChat.HarmonyChat.repository;
+package com.harmonyChat.HarmonyChat.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

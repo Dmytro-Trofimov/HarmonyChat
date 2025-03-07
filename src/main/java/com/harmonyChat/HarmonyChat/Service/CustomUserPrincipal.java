@@ -1,8 +1,9 @@
-package com.harmonyChat.HarmonyChat.service;
+package com.harmonyChat.HarmonyChat.Service;
+
+import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import java.util.Collection;
 
 public class CustomUserPrincipal implements UserDetails {
     private int id;

@@ -6,7 +6,6 @@ import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 
-import org.hibernate.Hibernate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -21,13 +20,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.harmonyChat.HarmonyChat.DTO.MessageDTO;
 import com.harmonyChat.HarmonyChat.DTO.MessageResponseDTO;
+import com.harmonyChat.HarmonyChat.Repository.ChatRepository;
+import com.harmonyChat.HarmonyChat.Service.ChatService;
+import com.harmonyChat.HarmonyChat.Service.MessageService;
+import com.harmonyChat.HarmonyChat.Service.UserService;
 import com.harmonyChat.HarmonyChat.model.Chat;
 import com.harmonyChat.HarmonyChat.model.Message;
 import com.harmonyChat.HarmonyChat.model.User;
-import com.harmonyChat.HarmonyChat.repository.ChatRepository;
-import com.harmonyChat.HarmonyChat.service.ChatService;
-import com.harmonyChat.HarmonyChat.service.MessageService;
-import com.harmonyChat.HarmonyChat.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -83,50 +82,38 @@ public class HarmonyController {
 	@GetMapping("/profil/{name}")
 	public String addContact(@PathVariable String name, Model model, Principal principal) {
 		// Отримати поточного користувача
-		System.out.println("shas najdem user");
 		User currentUser = userService.findByName(principal.getName());
 
 		// Отримати користувача, якого хочемо додати до контактів
-		System.out.println("shas najdem contact");
 		User contactUser = userService.findByName(name);
 		if (contactUser == null) {
-			System.out.println("user not found return error page");
+			model.addAttribute("user", currentUser);
+			model.addAttribute("contactNames", userService.getContactNames(currentUser));
+			model.addAttribute("contact", new User());
 			model.addAttribute("error", "User not found");
-			return "error-page"; // Відобразити сторінку помилки
-			// TODO: .../|\
-			// 			 |
+			return "home";
 		}
 
-		// Перевірка чи вже існує чат між користувачами
-		System.out.println("shas duvlus chi je contact");
 		boolean contactExists = chatRepository.existsChatBetweenUsers(currentUser.getId(), contactUser.getId());/*currentUser.getChats().stream()
 				.anyMatch(chat -> chat.getParticipants().contains(contactUser));*/
-		System.out.println("choho tut bulo dva");
 		
 		Chat chat;
 		if (!contactExists) {
-			// Створення нового чату
 			chat = new Chat();
 			chat.setParticipants(List.of(currentUser, contactUser));
 			chatService.save(chat);
 		} else {
-			// Отримання вже існуючого чату
-			System.out.println("find by userList");
 			chat = chatService.findByUsers(List.of(contactUser, currentUser));
 		}
-		System.out.println("Отримати повідомлення для чату");
-		// Отримати повідомлення для чату
 		List<Message> messages = messageService.findByChatId(chat.getId());
 
-		System.out.println(" Отримати імена контактів для поточного користувача");
-		// Отримати імена контактів для поточного користувача
 		List<String> contactNames = userService.getContactNames(currentUser);
 
-		// Додати атрибути до моделі для відображення на сторінці
 		model.addAttribute("contact", contactUser);
 		model.addAttribute("contactNames", contactNames);
 		model.addAttribute("messages", messages);
 		model.addAttribute("user", currentUser);
+		model.addAttribute("current_user", currentUser.getId());
 		model.addAttribute("chatId", chat.getId());
 
 		return "home";
@@ -135,7 +122,6 @@ public class HarmonyController {
 	@MessageMapping("/send")
 	@SendTo("/topic/messages")
 	public MessageResponseDTO sendMessage(@Payload MessageDTO messageDTO, Principal principal) {
-	    System.out.println("Received message: " + messageDTO);
 	    
 	    User currentUser = userService.findByName(principal.getName());
 	    if (currentUser == null) {
@@ -158,7 +144,7 @@ public class HarmonyController {
 	    return new MessageResponseDTO(
 	        message.getId(), 
 	        message.getText(), 
-	        currentUser.getId(), // Виправлено на ID автора
+	        currentUser.getId(),
 	        chat.getId()
 	    );
 	}

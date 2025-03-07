@@ -67,10 +67,10 @@
      .messages {
     display: flex;
     flex-direction: column;
-    justify-content: start; /* Змінюємо цю властивість */
+    justify-content: start;
     overflow-y: auto;
     height: calc(100% - 100px);
-    padding-right: 15px; /* Додаємо деяке відступ, щоб врахувати смугу прокрутки */
+    padding-right: 15px;
   }
     .message {
       display: flex;
@@ -138,13 +138,27 @@
     </div>
     <div class="chat-container">
       <div class="header">Your chat</div>
-      <div class="messages" id="messages">
-        <div th:each="message : ${messages}">
-          <div th:class="${message.author.id == user.id} ? 'message' : 'message outgoing'">
-            <!-- <img src="avatar1.png" alt="Avatar"> -->
-            <div class="message-content" th:text="${message.text}"></div>
-          </div>
-        </div>
+	  <div class="messages" id="messages">
+		
+		<!-- show if error
+		<div th:if="${error}" class="error-message" style="color: red; font-weight: bold;">
+		    <p th:text="${error}"></p>
+		</div>-->
+		<script th:if="${error}">
+		    alert("[[${error}]]");
+		</script>
+
+
+	      <div th:each="message : ${messages}">
+	          <!-- Дебаг
+	          <p>Message Author ID: <span th:text="${message.author.id}"></span></p>
+	          <p>Current User ID: <span th:text="${current_user}"></span></p>
+
+				Основний блок повідомлення -->
+	          <div th:class="${message.author.id == current_user} ? 'message outgoing' : 'message'">
+	              <div class="message-content" th:text="${message.text}"></div>
+	          </div>
+	      </div>
       </div>
       <div class="input-container">
 		<input type="hidden" id="chatId" th:value="${chatId}">
@@ -180,6 +194,9 @@
 
           response.classList.add('message');
           if (message.authorId === currentUserId) {
+			  console.log("aaaaaaaaaa");
+			  console.log(message.authorId);
+			  console.log(currentUserId);
               response.classList.add('outgoing');
           }
 
@@ -212,7 +229,6 @@
           messages.scrollTop = messages.scrollHeight;
       }
 
-      // Додаємо обробник події для клавіші Enter
       document.addEventListener("DOMContentLoaded", function() {
           connect();
           scrollToBottom();
@@ -220,7 +236,7 @@
           var textInput = document.getElementById("text");
           textInput.addEventListener("keydown", function(event) {
               if (event.key === "Enter") {
-                  event.preventDefault(); // Запобігає стандартній дії (наприклад, перехід на новий рядок)
+                  event.preventDefault();
                   sendMessage();
               }
           });

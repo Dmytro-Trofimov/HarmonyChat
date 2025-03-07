@@ -1,4 +1,4 @@
-package com.harmonyChat.HarmonyChat.service;
+package com.harmonyChat.HarmonyChat.Service;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.harmonyChat.HarmonyChat.Repository.UserRepository;
 import com.harmonyChat.HarmonyChat.model.User;
-import com.harmonyChat.HarmonyChat.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -37,7 +37,7 @@ public class UserService {
 	}
 	@Transactional
 	public User findByName(String name) {
-		return userRepository.findByName(name).get();
+		return userRepository.findByName(name).orElse(null);
 	}
 	@Transactional
 	public User save(User user) {

@@ -1,4 +1,4 @@
-package com.harmonyChat.HarmonyChat.repository;
+package com.harmonyChat.HarmonyChat.Repository;
 
 import java.util.List;
 

@@ -1,12 +1,12 @@
-package com.harmonyChat.HarmonyChat.service;
+package com.harmonyChat.HarmonyChat.Service;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.harmonyChat.HarmonyChat.Repository.MessageRepository;
 import com.harmonyChat.HarmonyChat.model.Message;
-import com.harmonyChat.HarmonyChat.repository.MessageRepository;
 
 import jakarta.transaction.Transactional;
 

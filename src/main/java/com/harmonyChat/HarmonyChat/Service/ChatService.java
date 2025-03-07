@@ -1,13 +1,13 @@
-package com.harmonyChat.HarmonyChat.service;
+package com.harmonyChat.HarmonyChat.Service;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.harmonyChat.HarmonyChat.Repository.ChatRepository;
 import com.harmonyChat.HarmonyChat.model.Chat;
 import com.harmonyChat.HarmonyChat.model.User;
-import com.harmonyChat.HarmonyChat.repository.ChatRepository;
 
 	@Service
 	public class ChatService {
